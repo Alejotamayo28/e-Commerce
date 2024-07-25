@@ -3,6 +3,7 @@ import { Response } from "express"
 import { RequestExt } from "../models/requestExt";
 import { Product } from "../models/product";
 import { ProductUtils } from "../utils/product.utils";
+import { errorMessage } from "../errors";
 
 export class ProductService {
   private productUtils: ProductUtils
@@ -16,11 +17,9 @@ export class ProductService {
       const response: QueryResult = await this.productUtils.createProduct(client.id, productData)
       return this.res.status(202).json({ Message: `Product Created`, Data: response.rows[0] })
     } catch (e) {
-      if (e instanceof Error) return this.res.status(400).json({ Message: console.error })
-      return this.res.status(400).json({ Message: `Desconocido` })
+      return errorMessage(e, this.res)
     }
   }
-
   public async getProducts(): Promise<Response> {
     const client = this.req.user
     if (!client) return this.res.status(303).json({ Message: "Client not found" })
@@ -29,8 +28,7 @@ export class ProductService {
       if (!product.rows) return this.res.status(303).json({ Message: "No products found" })
       return this.res.status(202).json({ Message: `Data found`, Data: product.rows })
     } catch (e) {
-      if (e instanceof Error) return this.res.status(400).json({ Message: console.error })
-      return this.res.status(400).json({ Message: `Desconocido` })
+      return errorMessage(e, this.res)
     }
   }
 }

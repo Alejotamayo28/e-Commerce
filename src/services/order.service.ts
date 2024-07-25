@@ -3,6 +3,7 @@ import { RequestExt } from "../models/requestExt"
 import { PurchaseProduct } from "../models/purchaseProduct"
 import { Purchase } from "../models/purchase"
 import { OrderUtils } from "../utils/order.Utils"
+import { errorMessage } from "../errors"
 
 export class OrderService {
   public orderUtils: OrderUtils
@@ -34,10 +35,8 @@ export class OrderService {
         message:
           `Compra finalizada.`
       })
-    } catch (error) {
-      console.error(error)
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      return this.res.status(400).json({ error: errorMessage })
+    } catch (e) {
+      return errorMessage(e, this.res)
     }
   }
 }
