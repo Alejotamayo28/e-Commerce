@@ -10,11 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.WalletService = void 0;
-const database_1 = require("../database/database");
+const wallet_utils_1 = require("../utils/wallet.utils");
+const errors_1 = require("../errors");
 class WalletService {
     constructor(req, res) {
         this.req = req;
         this.res = res;
+        this.walletUtils = new wallet_utils_1.WalletUtils();
     }
     createWallet(walletData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -23,12 +25,11 @@ class WalletService {
                 return this.res.status(303).json({ message: `User not found` });
             }
             try {
-                const response = yield this.createWalletRecord(client.id, walletData);
-                this.walletCreated(response);
+                const response = yield this.walletUtils.createWalletUtils(client.id, walletData);
+                return this.res.status(202).json({ Message: `Wallet crated`, Data: response });
             }
-            catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unkown Error';
-                return this.res.status(400).json({ error: errorMessage });
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
             }
         });
     }
@@ -40,42 +41,17 @@ class WalletService {
                 return this.res.status(303).json({ message: `User not found` });
             }
             try {
-                const walletOldData = yield this.getWalletRecord(client.id);
+                const walletOldData = yield this.walletUtils.getWalletRecord(client.id);
                 const walletNewData = {
                     balance: (_a = walletData.balance) !== null && _a !== void 0 ? _a : walletOldData.rows[0].balance,
                     status: (_b = walletData.status) !== null && _b !== void 0 ? _b : walletOldData.rows[0].status
                 };
-                const Wallet = yield this.updateWalletRecord(client.id, walletNewData);
+                const Wallet = yield this.walletUtils.updateWalletRecord(client.id, walletNewData);
                 return this.res.status(202).json({ Message: `Wallet Updated`, Data: Wallet.rows });
             }
-            catch (error) {
-                const errorMessage = error instanceof Error ? error.message : 'Unkown Error';
-                return this.res.status(400).json({ error: errorMessage });
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
             }
-        });
-    }
-    createWalletRecord(customerId, walletData) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const walletResult = yield database_1.pool.query(`INSERT INTO "Wallet" (customer_id, balance, currency, status) 
-     VALUES ($1, $2, $3, $4) RETURNING *`, [customerId, walletData.balance, walletData.currency, walletData.status]);
-            return walletResult.rows[0];
-        });
-    }
-    walletCreated(walletData) {
-        return __awaiter(this, void 0, void 0, function* () {
-            return this.res.status(202).json({ Message: `Wallet crated`, Data: walletData });
-        });
-    }
-    getWalletRecord(customerId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const walletResult = yield database_1.pool.query(`SELECT * FROM "Wallet" WHERE customer_id = $1`, [customerId]);
-            return walletResult;
-        });
-    }
-    updateWalletRecord(customerId, walletData) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const walletResult = yield database_1.pool.query(`UPDATE "Wallet" SET balance = $1, status = $2, updated_at = $3 WHERE customer_id = $4 RETURNING *`, [walletData.balance, walletData.status, new Date(), customerId]);
-            return walletResult;
         });
     }
 }

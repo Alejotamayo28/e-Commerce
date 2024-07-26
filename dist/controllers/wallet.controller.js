@@ -11,12 +11,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.walletServicePutController = exports.wallerServicePostController = void 0;
 const wallet_service_1 = require("../services/wallet.service");
+const errors_1 = require("../errors");
 const wallerServicePostController = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         new wallet_service_1.WalletService(req, res).createWallet(req.body);
     }
     catch (e) {
-        console.error(e);
+        return (0, errors_1.errorMessage)(e, res);
     }
 });
 exports.wallerServicePostController = wallerServicePostController;
@@ -25,7 +26,7 @@ const walletServicePutController = (req, res) => __awaiter(void 0, void 0, void 
         new wallet_service_1.WalletService(req, res).updateWallet(req.body);
     }
     catch (e) {
-        console.error(e);
+        return (0, errors_1.errorMessage)(e, res);
     }
 });
 exports.walletServicePutController = walletServicePutController;

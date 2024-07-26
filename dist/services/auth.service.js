@@ -15,28 +15,40 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_1 = require("../utils/jwt");
-const auth_queries_1 = require("../queries/auth.queries");
+const auth_utils_1 = require("../utils/auth.utils");
+const errors_1 = require("../errors");
 class AuthService {
     constructor(req, res) {
         this.req = req;
         this.res = res;
+        this.authUtils = new auth_utils_1.AuthUtils();
     }
     register(customerData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const hashedPassword = yield bcryptjs_1.default.hash(customerData.password, 10);
-            const response = yield (0, auth_queries_1.registerCustomer)("Customer", hashedPassword, customerData);
-            return this.res.status(202).json({ Message: `Completed`, Data: response.rows[0] });
+            try {
+                const hashedPassword = yield bcryptjs_1.default.hash(customerData.password, 10);
+                const response = yield this.authUtils.createCustomer(hashedPassword, customerData);
+                return this.res.status(202).json({ Message: `Completed`, Data: response.rows[0] });
+            }
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
+            }
         });
     }
     login(customerData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const user = yield (0, auth_queries_1.getCustomer)("Customer", customerData.email);
-            if (!user.rowCount)
-                this.res.status(303).json(`Email not found`);
-            if (!(yield bcryptjs_1.default.compare(customerData.password, user.rows[0].password))) {
-                return this.res.status(303).json(`Contrasena Invalida`);
+            try {
+                const user = yield this.authUtils.getCustomer(customerData.email);
+                if (!user.rowCount)
+                    this.res.status(303).json(`Email not found`);
+                if (!(yield bcryptjs_1.default.compare(customerData.password, user.rows[0].password))) {
+                    return this.res.status(303).json(`Contrasena Invalida`);
+                }
+                return this.res.status(202).json({ Token: (0, jwt_1.generateToken)(user.rows[0].id) });
             }
-            return this.res.status(202).json({ Token: (0, jwt_1.generateToken)(user.rows[0].id) });
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
+            }
         });
     }
 }

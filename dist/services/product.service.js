@@ -10,11 +10,13 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ProductService = void 0;
-const product_queries_1 = require("../queries/product.queries");
+const product_utils_1 = require("../utils/product.utils");
+const errors_1 = require("../errors");
 class ProductService {
     constructor(req, res) {
         this.req = req;
         this.res = res;
+        this.productUtils = new product_utils_1.ProductUtils();
     }
     createProduct(productData) {
         return __awaiter(this, void 0, void 0, function* () {
@@ -22,13 +24,11 @@ class ProductService {
             try {
                 if (!client)
                     return this.res.status(303).json({ Message: "Client not found" });
-                const response = yield (0, product_queries_1.createProduct)("Product", client.id, productData);
+                const response = yield this.productUtils.createProduct(client.id, productData);
                 return this.res.status(202).json({ Message: `Product Created`, Data: response.rows[0] });
             }
             catch (e) {
-                if (e instanceof Error)
-                    return this.res.status(400).json({ Message: console.error });
-                return this.res.status(400).json({ Message: `Desconocido` });
+                return (0, errors_1.errorMessage)(e, this.res);
             }
         });
     }
@@ -38,15 +38,13 @@ class ProductService {
             if (!client)
                 return this.res.status(303).json({ Message: "Client not found" });
             try {
-                const product = yield (0, product_queries_1.getAllProducts)("Product");
+                const product = yield this.productUtils.getProducts();
                 if (!product.rows)
                     return this.res.status(303).json({ Message: "No products found" });
                 return this.res.status(202).json({ Message: `Data found`, Data: product.rows });
             }
             catch (e) {
-                if (e instanceof Error)
-                    return this.res.status(400).json({ Message: console.error });
-                return this.res.status(400).json({ Message: `Desconocido` });
+                return (0, errors_1.errorMessage)(e, this.res);
             }
         });
     }
