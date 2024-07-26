@@ -13,8 +13,8 @@ export const validateWalletPost = [
 ]
 
 export const validateWalletPut = [
-  check(`balance`).isNumeric(),
-  check(`status`).isString(),
+  check(`balance`).optional().isNumeric(),
+  check(`status`).optional().isString(),
   (req: Request, res: Response, next: NextFunction) => {
     validateResult(req, res, next)
   }
