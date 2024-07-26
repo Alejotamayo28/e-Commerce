@@ -1,20 +1,22 @@
 import bcrypt from "bcryptjs"
 import { QueryResult } from "pg"
-import { Request, Response } from "express"
+import { Response } from "express"
 import { generateToken } from "../utils/jwt"
 import { Customer } from "../models/customer"
 import { AuthUtils } from "../utils/auth.utils"
 import { errorMessage } from "../errors"
+import { EmailService } from "./email.service"
 
 export class AuthService {
   private authUtils: AuthUtils
-  constructor(private req: Request, private res: Response) {
+  constructor(private res: Response) {
     this.authUtils = new AuthUtils()
   }
   public async register(customerData: Customer): Promise<Response> {
     try {
       const hashedPassword = await bcrypt.hash(customerData.password, 10)
       const response: QueryResult = await this.authUtils.createCustomer(hashedPassword, customerData)
+      new EmailService().sendEmail(customerData)
       return this.res.status(202).json({ Message: `Completed`, Data: response.rows[0] })
     } catch (e) {
       return errorMessage(e, this.res)
@@ -32,3 +34,6 @@ export class AuthService {
     }
   }
 }
+
+
+

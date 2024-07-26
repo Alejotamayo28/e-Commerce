@@ -5,7 +5,7 @@ import { pool } from "../database/database";
 export class AuthUtils {
   public async createCustomer(hashedPassword: string, customerData: Customer): Promise<QueryResult<Customer>> {
     const response: QueryResult = await pool.query(
-      `INSERT INTO "Customer" (email, password, name,) VALUES ( $1, $2, $3) RETURNING *`,
+      `INSERT INTO "Customer" (email, password, name) VALUES ( $1, $2, $3) RETURNING *`,
       [customerData.email, hashedPassword, customerData.name])
     return response
   }
