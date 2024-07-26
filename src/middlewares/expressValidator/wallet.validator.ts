@@ -2,7 +2,6 @@ import { check } from "express-validator";
 import { validateResult } from ".";
 import { NextFunction, Request, Response } from "express";
 
-
 export const validateWalletPost = [
   check(`balance`).exists().isNumeric(),
   check(`currency`).exists().isString(),

@@ -13,6 +13,5 @@ export class ProductUtils {
       [productData.name, productData.price, productData
         .stock, productData.description, productData.color, productData.year, id])
     return response
-
   }
 }
