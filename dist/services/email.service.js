@@ -1,18 +1,30 @@
-import { emailData } from "../email/config.email";
-import { transporter } from "../email/template.email";
-import { Customer } from "../models/customer";
-
-export class EmailService {
-  public async sendEmail(customerData: Customer) {
-    await transporter.sendMail({
-      from: emailData.user,
-      to: customerData.email,
-      subject: `Bienvenido a mi API E-commerce, ${customerData.name}.`,
-      html: this.welcomeTextEmail(customerData)
-    })
-  }
-  public welcomeTextEmail(customer: Customer) {
-    return `
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.EmailService = void 0;
+const config_email_1 = require("../email/config.email");
+const template_email_1 = require("../email/template.email");
+class EmailService {
+    sendEmail(customerData) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield template_email_1.transporter.sendMail({
+                from: config_email_1.emailData.user,
+                to: customerData.email,
+                subject: `Bienvenido a mi API E-commerce, ${customerData.name}.`,
+                html: this.welcomeTextEmail(customerData)
+            });
+        });
+    }
+    welcomeTextEmail(customer) {
+        return `
 <!DOCTYPE html>
       <html lang="es">
       <head>
@@ -48,6 +60,7 @@ export class EmailService {
           </table>
       </body>
       </html>
-`
-  }
+`;
+    }
 }
+exports.EmailService = EmailService;

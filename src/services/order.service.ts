@@ -4,6 +4,8 @@ import { PurchaseProduct } from "../models/purchaseProduct"
 import { Purchase } from "../models/purchase"
 import { OrderUtils } from "../utils/order.Utils"
 import { errorMessage } from "../errors"
+import { QueryResult } from "pg"
+import { pool } from "../database/database"
 
 export class OrderService {
   public orderUtils: OrderUtils
@@ -35,6 +37,18 @@ export class OrderService {
         message:
           `Compra finalizada.`
       })
+    } catch (e) {
+      return errorMessage(e, this.res)
+    }
+  }
+  public async getPurchaseRecords() {
+    const user = this.req.user
+    if (!user) {
+      return this.res.status(303).json({ message: 'User not found' })
+    }
+    try {
+      const response: QueryResult = await this.orderUtils.getPurchaseRecords(user.id)
+      return this.res.status(202).json({ Message: `Data History: `, Data: response.rows })
     } catch (e) {
       return errorMessage(e, this.res)
     }

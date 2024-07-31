@@ -5,7 +5,7 @@ import { errorMessage } from "../errors";
 
 export const authServiceLoginController = (req: RequestExt, res: Response) => {
   try {
-    new AuthService(req, res).login(req.body)
+    new AuthService(res).login(req.body)
   } catch (e) {
     return errorMessage(e, res)
   }
@@ -13,7 +13,7 @@ export const authServiceLoginController = (req: RequestExt, res: Response) => {
 
 export const authServiceRegisterController = (req: RequestExt, res: Response) => {
   try {
-    new AuthService(req, res).register(req.body)
+    new AuthService(res).register(req.body)
   } catch (e) {
     return errorMessage(e, res)
   }

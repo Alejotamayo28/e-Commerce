@@ -52,5 +52,20 @@ class OrderService {
             }
         });
     }
+    getPurchaseRecords() {
+        return __awaiter(this, void 0, void 0, function* () {
+            const user = this.req.user;
+            if (!user) {
+                return this.res.status(303).json({ message: 'User not found' });
+            }
+            try {
+                const response = yield this.orderUtils.getPurchaseRecords(user.id);
+                return this.res.status(202).json({ Message: `Data History: `, Data: response.rows });
+            }
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
+            }
+        });
+    }
 }
 exports.OrderService = OrderService;

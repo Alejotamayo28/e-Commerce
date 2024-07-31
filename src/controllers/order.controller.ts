@@ -11,3 +11,10 @@ export const orderServicePurchaseController = (req: RequestExt, res: Response) =
     return errorMessage(e, res)
   }
 }
+export const orderServiceGetRecordController = (req: RequestExt, res: Response) => {
+  try {
+    new OrderService(req, res).getPurchaseRecords()
+  } catch (e) {
+    return errorMessage(e, res)
+  }
+}

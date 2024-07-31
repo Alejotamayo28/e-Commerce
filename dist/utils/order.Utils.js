@@ -72,5 +72,26 @@ class OrderUtils {
     productNotFound() {
         return this.res.status(404).json({ message: 'Producto no encontrado' });
     }
+    getPurchaseRecords(customerId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield database_1.pool.query(`SELECT
+    "Purchase".id AS purchase_id,
+    "Purchase".total,
+    "Purchase".createdAt,
+    "Product".id AS product_id,
+    "Product".name AS product_name,
+    "Product".description,
+    "Product".price
+FROM
+    "Purchase"
+JOIN
+    "PurchaseProduct" ON "Purchase".id = "PurchaseProduct".purchaseId
+JOIN
+    "Product" ON "PurchaseProduct".productId = "Product".id
+WHERE
+    "Purchase".customerId = $1;`, [customerId]);
+            return response;
+        });
+    }
 }
 exports.OrderUtils = OrderUtils;

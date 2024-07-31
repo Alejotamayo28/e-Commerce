@@ -67,4 +67,25 @@ export class OrderUtils {
   public productNotFound() {
     return this.res.status(404).json({ message: 'Producto no encontrado' })
   }
+  public async getPurchaseRecords(customerId: number):Promise<QueryResult> {
+    const response: QueryResult = await pool.query(
+      `SELECT
+    "Purchase".id AS purchase_id,
+    "Purchase".total,
+    "Purchase".createdAt,
+    "Product".id AS product_id,
+    "Product".name AS product_name,
+    "Product".description,
+    "Product".price
+FROM
+    "Purchase"
+JOIN
+    "PurchaseProduct" ON "Purchase".id = "PurchaseProduct".purchaseId
+JOIN
+    "Product" ON "PurchaseProduct".productId = "Product".id
+WHERE
+    "Purchase".customerId = $1;`,
+      [customerId])
+    return response
+  }
 }
