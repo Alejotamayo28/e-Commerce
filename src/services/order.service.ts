@@ -41,7 +41,7 @@ export class OrderService {
       return errorMessage(e, this.res)
     }
   }
-  public async getPurchaseRecords() {
+  public async getPurchaseRecords(): Promise<Response> {
     const user = this.req.user
     if (!user) {
       return this.res.status(303).json({ message: 'User not found' })
