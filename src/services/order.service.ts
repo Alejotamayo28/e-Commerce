@@ -5,7 +5,6 @@ import { Purchase } from "../models/purchase"
 import { OrderUtils } from "../utils/order.Utils"
 import { errorMessage } from "../errors"
 import { QueryResult } from "pg"
-import { pool } from "../database/database"
 
 export class OrderService {
   public orderUtils: OrderUtils
@@ -34,8 +33,7 @@ export class OrderService {
         await this.orderUtils.updateWalletBalance(user.id, walletBalance - total)
       ])
       return this.res.status(202).json({
-        message:
-          `Compra finalizada.`
+        message: `Compra finalizada.`
       })
     } catch (e) {
       return errorMessage(e, this.res)

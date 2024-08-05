@@ -80,14 +80,17 @@ class OrderUtils {
     "Purchase".createdAt,
     "Product".id AS product_id,
     "Product".name AS product_name,
-    "Product".description,
-    "Product".price
+    "ProductDetails".description,
+    "ProductDetails".color,
+    "ProductDetails".year
 FROM
     "Purchase"
 JOIN
     "PurchaseProduct" ON "Purchase".id = "PurchaseProduct".purchaseId
 JOIN
     "Product" ON "PurchaseProduct".productId = "Product".id
+JOIN
+    "ProductDetails" on "Product".description_id = "ProductDetails".id
 WHERE
     "Purchase".customerId = $1;`, [customerId]);
             return response;

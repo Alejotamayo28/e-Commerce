@@ -3,7 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const wallet_controller_1 = require("../controllers/wallet.controller");
-const wallet_validator_1 = require("../middlewares/expressValidator/wallet.validator");
+const wallet_validator_1 = require("../middlewares/validators/wallet.validator");
 const walletRouter = (0, express_1.Router)();
 walletRouter.post(`/post`, wallet_validator_1.validateWalletPost, auth_middleware_1.authenticateToken, wallet_controller_1.wallerServicePostController);
 walletRouter.put(`/put`, wallet_validator_1.validateWalletPut, auth_middleware_1.authenticateToken, wallet_controller_1.walletServicePutController);

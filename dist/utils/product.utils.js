@@ -20,9 +20,18 @@ class ProductUtils {
     }
     createProduct(id, productData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield database_1.pool.query(`INSERT INTO "Product" (name,  price, stock, description, color, year, seller_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`, [productData.name, productData.price, productData
-                    .stock, productData.description, productData.color, productData.year, id]);
-            return response;
+            const description = yield database_1.pool.query(`INSERT INTO "ProductDetails" (description, color, year, category) VALUES ($1, $2, $3, $4) RETURNING *`, [productData.description, productData.color, productData.year, productData.category]);
+            const product = yield database_1.pool.query(`INSERT INTO "Product" (name,  price, stock, description_id, seller_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [productData.name, productData.price, productData.stock, description.rows[0].id, id]);
+            const producto = {
+                name: product.rows[0].name,
+                price: product.rows[0].price,
+                stock: product.rows[0].stock,
+                description: description.rows[0].description,
+                color: description.rows[0].color,
+                year: description.rows[0].year,
+                category: description.rows[0].category
+            };
+            return producto;
         });
     }
 }

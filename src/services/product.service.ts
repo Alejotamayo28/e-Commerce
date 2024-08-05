@@ -14,8 +14,8 @@ export class ProductService {
     const client = this.req.user
     try {
       if (!client) return this.res.status(303).json({ Message: "Client not found" })
-      const response: QueryResult = await this.productUtils.createProduct(client.id, productData)
-      return this.res.status(202).json({ Message: `Product Created`, Data: response.rows[0] })
+      const response = await this.productUtils.createProduct(client.id, productData)
+      return this.res.status(202).json({ Message: `Product Created`, Data: response })
     } catch (e) {
       return errorMessage(e, this.res)
     }

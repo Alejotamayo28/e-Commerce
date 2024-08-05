@@ -14,7 +14,7 @@ const database_1 = require("../database/database");
 class AuthUtils {
     createCustomer(hashedPassword, customerData) {
         return __awaiter(this, void 0, void 0, function* () {
-            const response = yield database_1.pool.query(`INSERT INTO "Customer" (email, password, name) VALUES ( $1, $2, $3) RETURNING *`, [customerData.email, hashedPassword, customerData.name]);
+            const response = yield database_1.pool.query(`INSERT INTO "Customer" (email, password, name, country) VALUES ($1, $2, $3, $4) RETURNING *`, [customerData.email, hashedPassword, customerData.name, customerData.country]);
             return response;
         });
     }

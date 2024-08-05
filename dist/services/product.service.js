@@ -25,7 +25,7 @@ class ProductService {
                 if (!client)
                     return this.res.status(303).json({ Message: "Client not found" });
                 const response = yield this.productUtils.createProduct(client.id, productData);
-                return this.res.status(202).json({ Message: `Product Created`, Data: response.rows[0] });
+                return this.res.status(202).json({ Message: `Product Created`, Data: response });
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);
