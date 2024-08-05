@@ -4,5 +4,7 @@ const express_1 = require("express");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const search_controller_1 = require("../controllers/search.controller");
 const searchRouter = (0, express_1.Router)();
-searchRouter.get(`/find/:filter`, auth_middleware_1.authenticateToken, search_controller_1.searchServiceGetCategoryController);
+searchRouter.get(`/find/category/:category`, auth_middleware_1.authenticateToken, search_controller_1.getCategoryProductsController);
+searchRouter.get(`/find/price/:price`, auth_middleware_1.authenticateToken, search_controller_1.getPriceProductsController);
+searchRouter.get(`/find/categoryprice/:category/:price/`, auth_middleware_1.authenticateToken, search_controller_1.getProductsByPriceAndCategoryController);
 exports.default = searchRouter;
