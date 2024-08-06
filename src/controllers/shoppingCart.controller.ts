@@ -10,3 +10,17 @@ export const postShoppingCartController = (req: RequestExt, res: Response) => {
     return errorMessage(e, res)
   }
 }
+export const getShoppingCartController = (req: RequestExt, res: Response) => {
+  try {
+    new ShoppingCartService(req, res).getShoppingCart()
+  } catch (e) {
+    return errorMessage(e, res)
+  }
+}
+export const getTotalShoppingCartController = (req: RequestExt, res: Response) => {
+  try {
+    new ShoppingCartService(req, res).getTotal()
+  } catch (e) {
+    return errorMessage(e, res)
+  }
+}

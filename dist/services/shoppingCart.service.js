@@ -11,24 +11,59 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShoppingCartService = void 0;
 const errors_1 = require("../errors");
-const database_1 = require("../database/database");
+const shoppingCart_utils_1 = require("../utils/shoppingCart.utils");
 class ShoppingCartService {
     constructor(req, res) {
         this.req = req;
         this.res = res;
     }
+    responseQuery(response, grand_total) {
+        return this.res.status(200).json({ Message: 'Successful', Total: grand_total, Data: response.rows });
+    }
+    verifyClient() {
+        const client = this.req.user;
+        if (!client) {
+            this.res.status(401).json({ Message: `User not found` });
+            return false;
+        }
+        return true;
+    }
     addProduct(shoppingCart) {
         return __awaiter(this, void 0, void 0, function* () {
-            const client = this.req.user;
-            if (!client)
-                this.res.status(303).json({ Message: `User not found` });
+            if (!this.verifyClient())
+                return;
             try {
-                const product = yield database_1.pool.query(`SELECT * FROM "Product" WHERE id = $1`, [shoppingCart.productId]);
-                if (!product.rowCount) {
-                    return this.res.status(303).json(`Product not found`);
-                }
-                const shoppingCartResponse = yield database_1.pool.query(`INSERT INTO "ShoppingCart" (customerId, productId, quantity, added_at) VALUES ($1, $2, $3, $4) RETURNING *`, [client.id, shoppingCart.productId, shoppingCart.quantity, new Date()]);
-                return this.res.status(202).json({ Message: `Tasks Succesfull`, Data: shoppingCartResponse.rows });
+                const product = yield (0, shoppingCart_utils_1.getProductById)(this.req.user.id);
+                if (!product.rowCount)
+                    return this.res.status(404).json({ Message: `Product not found` });
+                const response = yield (0, shoppingCart_utils_1.postShoppingCart)(shoppingCart, this.req.user.id);
+                return this.responseQuery(response);
+            }
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
+            }
+        });
+    }
+    getShoppingCart() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.verifyClient())
+                return;
+            try {
+                const response = yield (0, shoppingCart_utils_1.getShoppingCart)(this.req.user.id);
+                return this.responseQuery(response, response.rows[0].grand_total);
+            }
+            catch (e) {
+                return (0, errors_1.errorMessage)(e, this.res);
+            }
+        });
+    }
+    getTotal() {
+        return __awaiter(this, void 0, void 0, function* () {
+            if (!this.verifyClient())
+                return;
+            try {
+                const response = yield (0, shoppingCart_utils_1.getTotalShoppingCart)(this.req.user.id);
+                return this.res.status(202).json({ Message: `Succesfull`, Total: response.rows[0].grand_total });
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);

@@ -5,4 +5,6 @@ const auth_middleware_1 = require("../middlewares/auth.middleware");
 const shoppingCart_controller_1 = require("../controllers/shoppingCart.controller");
 const shoppingCart = (0, express_1.Router)();
 shoppingCart.post(`/addProduct`, auth_middleware_1.authenticateToken, shoppingCart_controller_1.postShoppingCartController);
+shoppingCart.get(`/get`, auth_middleware_1.authenticateToken, shoppingCart_controller_1.getShoppingCartController);
+shoppingCart.get(`/get/total`, auth_middleware_1.authenticateToken, shoppingCart_controller_1.getTotalShoppingCartController);
 exports.default = shoppingCart;
