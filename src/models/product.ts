@@ -6,7 +6,6 @@ export interface Product extends Desription{
 }
 
 export interface Desription {
-  id: number,
   description: string,
   color: string,
   year: number,

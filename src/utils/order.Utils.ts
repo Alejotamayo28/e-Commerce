@@ -3,71 +3,43 @@ import { pool } from "../database/database"
 import { Product } from "../models/product"
 import { Purchase } from "../models/purchase"
 import { Response } from "express"
+import { Customer } from "../models/customer"
+import { JwtPayload } from "jsonwebtoken"
+import { Wallet } from "../models/wallet"
 
 export class OrderUtils {
   constructor(private res: Response) { }
-  public async getProductById(productId: number): Promise<Product | null> {
-    const productResult: QueryResult = await pool.query(
-      `SELECT * FROM "Product" WHERE id = $1`,
-      [productId]
-    )
-    return productResult.rowCount! > 0 ? productResult.rows[0] : null
-  }
-  public async getWalletById(customerId: number) {
-    const walletResult: QueryResult = await pool.query(
-      `SELECT * FROM "Wallet" WHERE customer_id = $1`,
-      [customerId])
-    return walletResult.rows[0].balance
-  }
-  public async createPurchaseRecord(customerId: number, total: number): Promise<Purchase> {
+  static async createPurchaseRecord(customerId: number, total: number): Promise<Purchase> {
     const purchaseResult: QueryResult = await pool.query(
       `INSERT INTO "Purchase" (customerId, total) VALUES ($1, $2) RETURNING *`,
       [customerId, total]
     )
-    return purchaseResult.rows[0]
+    return purchaseResult.rows[0] as Purchase
   }
-  public async createPurchaseProductRecord(purchaseId: number, productId: number, quantity: number): Promise<void> {
+  static async createPurchaseProductRecord(purchaseId: number, productId: number, quantity: number): Promise<void> {
     await pool.query(
       `INSERT INTO "PurchaseProduct" (purchaseId, productId, quantity) VALUES ($1, $2, $3)`,
       [purchaseId, productId, quantity]
     )
   }
-  public async updateProductStock(productId: number, newStock: number): Promise<void> {
+  static async updateProductStock(productId: number, newStock: number): Promise<void> {
     await pool.query(
       `UPDATE "Product" SET stock = $1 WHERE id = $2`,
       [newStock, productId]
     )
   }
-  public async updateWalletBalance(customerId: number, newBalance: number) {
+  static async updateWalletBalance(customerId: number, newBalance: number): Promise<void> {
     await pool.query(
       `UPDATE "Wallet" SET balance = $1, updated_at = $2 WHERE customer_id = $3`,
       [newBalance, new Date(), customerId])
   }
-  public checkQuantity(quantity: number): Boolean {
-    if (quantity <= 0) {
-      this.res.status(400).json({ message: 'La cantidad a comprar debe ser mayor a cero.' })
-      return false
-    }
-    return true
-  }
-  public checkStock(stock: number, quantity: number): Boolean {
-    if (stock < quantity) {
-      this.res.status(400).json({ message: 'Stock insuficiente' })
-      return false
-    }
-    return true
-  }
-  public checkBalance(total: number, balance: number): Boolean {
+  static checkBalance(total: number, balance: number): Boolean {
     if (total > balance) {
-      this.res.status(400).json({ message: `insuficient balance` })
       return false
     }
     return true
   }
-  public productNotFound() {
-    return this.res.status(404).json({ message: 'Producto no encontrado' })
-  }
-  public async getPurchaseRecords(customerId: number):Promise<QueryResult> {
+  static async getPurchaseRecords(customerId: number): Promise<QueryResult> {
     const response: QueryResult = await pool.query(
       `SELECT
     "Purchase".id AS purchase_id,
@@ -90,5 +62,40 @@ WHERE
     "Purchase".customerId = $1;`,
       [customerId])
     return response
+  }
+  static async getSellerCountry(id: number): Promise<Customer> {
+    const response: QueryResult = await pool.query(
+      `SELECT
+	  c.country as country
+FROM
+	  "Customer" c
+JOIN
+	  "Product" p ON c.id  = p.seller_id 
+WHERE
+	  p.id = $1`, [id])
+    return response.rows[0]
+  }
+  static async processPurchase(
+    purchaseId: number,
+    productData: Product,
+    quantity: number,
+    userId: number,
+    walletBalance: Wallet,
+    total: number
+  ): Promise<void> {
+    await Promise.all([
+      OrderUtils.createPurchaseProductRecord(purchaseId, productData.id, quantity),
+      OrderUtils.updateProductStock(productData.id, productData.stock - quantity),
+      OrderUtils.updateWalletBalance(userId, walletBalance.balance - total)
+    ]);
+  }
+  static calculateTotal(price: number, quantity: number, user: JwtPayload, sellerCountry: string): number {
+    return (price * quantity) + this.countryTaxes(user, sellerCountry)
+  }
+  static countryTaxes(user: JwtPayload, sellerCountry: string): number {
+    let tax = 0
+    const userCountry = user.country
+    if (userCountry != sellerCountry) tax += 1000
+    return tax
   }
 }

@@ -7,7 +7,7 @@ export const validateProductPost = [
   check(`name`).exists().isString(),
   check(`price`).exists().isNumeric(),
   check(`stock`).exists().isNumeric().custom((value) => {
-    verifyProductStock(value)
+    return verifyProductStock(value)
   }),
   check(`description`).exists().isString(),
   check(`color`).exists().isString(),

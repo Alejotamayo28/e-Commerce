@@ -12,55 +12,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.OrderService = void 0;
 const order_Utils_1 = require("../utils/order.Utils");
 const errors_1 = require("../errors");
+const product_utils_1 = require("../utils/product.utils");
+const http_response_1 = require("../utils/http.response");
+const wallet_utils_1 = require("../utils/wallet.utils");
 class OrderService {
     constructor(req, res) {
         this.req = req;
         this.res = res;
-        this.orderUtils = new order_Utils_1.OrderUtils(res);
     }
     createPurchase(purchaseProduct) {
         return __awaiter(this, void 0, void 0, function* () {
             const user = this.req.user;
-            if (!user) {
-                return this.res.status(303).json({ message: 'User not found' });
-            }
             try {
-                if (!this.orderUtils.checkQuantity(purchaseProduct.quantity))
-                    return;
-                let productData = yield this.orderUtils.getProductById(purchaseProduct.productId);
-                if (!productData) {
-                    return this.orderUtils.productNotFound();
-                }
-                if (!this.orderUtils.checkStock(productData.stock, purchaseProduct.quantity))
-                    return;
-                const total = productData.price * purchaseProduct.quantity;
-                const walletBalance = yield this.orderUtils.getWalletById(user.id);
-                if (!this.orderUtils.checkBalance(total, walletBalance))
-                    return;
-                const purchaseData = yield this.orderUtils.createPurchaseRecord(user.id, total);
-                yield Promise.all([
-                    yield this.orderUtils.createPurchaseProductRecord(purchaseData.id, productData.id, purchaseProduct.quantity),
-                    yield this.orderUtils.updateProductStock(productData.id, productData.stock - purchaseProduct.quantity),
-                    yield this.orderUtils.updateWalletBalance(user.id, walletBalance - total)
+                const productData = yield (0, product_utils_1.getProductById)(purchaseProduct.productId);
+                if (!productData)
+                    return http_response_1.HttpResponses.sendErrorResponse(this.res, 204, `Product Not Found`);
+                const [sellerCountry, walletBalance] = yield Promise.all([
+                    order_Utils_1.OrderUtils.getSellerCountry(purchaseProduct.productId),
+                    wallet_utils_1.WalletUtils.getWalletRecord(user.id)
                 ]);
-                return this.res.status(202).json({
-                    message: `Compra finalizada.`
-                });
-            }
-            catch (e) {
-                return (0, errors_1.errorMessage)(e, this.res);
-            }
-        });
-    }
-    getPurchaseRecords() {
-        return __awaiter(this, void 0, void 0, function* () {
-            const user = this.req.user;
-            if (!user) {
-                return this.res.status(303).json({ message: 'User not found' });
-            }
-            try {
-                const response = yield this.orderUtils.getPurchaseRecords(user.id);
-                return this.res.status(202).json({ Message: `Data History: `, Data: response.rows });
+                const total = order_Utils_1.OrderUtils.calculateTotal(productData.price, purchaseProduct.quantity, user, sellerCountry.country);
+                if (!order_Utils_1.OrderUtils.checkBalance(total, walletBalance.balance)) {
+                    return http_response_1.HttpResponses.sendErrorResponse(this.res, 402, `Insufficient Balance`);
+                }
+                const purchaseData = yield order_Utils_1.OrderUtils.createPurchaseRecord(user.id, total);
+                console.log(`wallet: `, walletBalance);
+                yield order_Utils_1.OrderUtils.processPurchase(purchaseData.id, productData, purchaseProduct.quantity, user.id, walletBalance, total);
+                return http_response_1.HttpResponses.sendSuccessResponse(this.res, `Purchase Completed Succesfully`);
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);

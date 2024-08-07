@@ -18,7 +18,7 @@ class ShoppingCartService {
         this.res = res;
     }
     responseQuery(response, grand_total) {
-        return this.res.status(200).json({ Message: 'Successful', Total: grand_total, Data: response.rows });
+        return this.res.status(200).json({ Message: 'Successful', Total: grand_total, Data: response });
     }
     verifyClient() {
         const client = this.req.user;
@@ -50,7 +50,7 @@ class ShoppingCartService {
                 return;
             try {
                 const response = yield (0, shoppingCart_utils_1.getShoppingCart)(this.req.user.id);
-                return this.responseQuery(response, response.rows[0].grand_total);
+                return this.responseQuery(response);
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);

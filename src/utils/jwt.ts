@@ -1,11 +1,11 @@
 import { JwtPayload, sign, verify } from 'jsonwebtoken'
 import dotenv from "dotenv";
-import { Response } from 'express';
 dotenv.config();
 
-export const generateToken = (id: number) => {
+export const generateToken = (id: number, country: string) => {
   const jwt = sign({
-    id: id
+    id: id,
+    country: country
   }, process.env.JWT_SECRET!, {
     expiresIn: "1h",
   })

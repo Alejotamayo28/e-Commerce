@@ -14,7 +14,7 @@ const database_1 = require("../database/database");
 const postShoppingCart = (shoppingCart, id) => __awaiter(void 0, void 0, void 0, function* () {
     const response = yield database_1.pool.query(`INSERT INTO "ShoppingCart" (customerId, productId, quantity, added_at) 
          VALUES ($1, $2, $3, $4) RETURNING *`, [id, shoppingCart.productId, shoppingCart.quantity, new Date()]);
-    return response;
+    return response.rows[0];
 });
 exports.postShoppingCart = postShoppingCart;
 const getShoppingCart = (id) => __awaiter(void 0, void 0, void 0, function* () {
@@ -36,7 +36,7 @@ const getShoppingCart = (id) => __awaiter(void 0, void 0, void 0, function* () {
         "ProductDetails" pd ON p.description_id = pd.id 
     WHERE 
         sc.customerid = $1`, [id]);
-    return response;
+    return response.rows[0];
 });
 exports.getShoppingCart = getShoppingCart;
 const getProductById = (id) => __awaiter(void 0, void 0, void 0, function* () {

@@ -11,7 +11,7 @@ export class EmailService {
       html: this.welcomeTextEmail(customerData)
     })
   }
-  public welcomeTextEmail(customer: Customer) {
+  public welcomeTextEmail(customer: Customer): string {
     return `
 <!DOCTYPE html>
       <html lang="es">

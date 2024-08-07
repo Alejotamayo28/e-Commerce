@@ -7,9 +7,10 @@ exports.verifyClient = exports.verifyToken = exports.generateToken = void 0;
 const jsonwebtoken_1 = require("jsonwebtoken");
 const dotenv_1 = __importDefault(require("dotenv"));
 dotenv_1.default.config();
-const generateToken = (id) => {
+const generateToken = (id, country) => {
     const jwt = (0, jsonwebtoken_1.sign)({
-        id: id
+        id: id,
+        country: country
     }, process.env.JWT_SECRET, {
         expiresIn: "1h",
     });

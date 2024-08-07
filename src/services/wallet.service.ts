@@ -27,10 +27,10 @@ export class WalletService {
       return this.res.status(303).json({ message: `User not found` })
     }
     try {
-      const walletOldData: QueryResult = await this.walletUtils.getWalletRecord(client.id)
+      const walletOldData: Wallet = await WalletUtils.getWalletRecord(client.id)
       const walletNewData: Partial<Wallet> = {
-        balance: walletData.balance ?? walletOldData.rows[0].balance,
-        status: walletData.status ?? walletOldData.rows[0].status
+        balance: walletData.balance ?? walletOldData.balance,
+        status: walletData.status ?? walletOldData.status
       }
       const Wallet = await this.walletUtils.updateWalletRecord(client.id, walletNewData)
       return this.res.status(202).json({ Message: `Wallet Updated`, Data: Wallet.rows })

@@ -15,64 +15,34 @@ class OrderUtils {
     constructor(res) {
         this.res = res;
     }
-    getProductById(productId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const productResult = yield database_1.pool.query(`SELECT * FROM "Product" WHERE id = $1`, [productId]);
-            return productResult.rowCount > 0 ? productResult.rows[0] : null;
-        });
-    }
-    getWalletById(customerId) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const walletResult = yield database_1.pool.query(`SELECT * FROM "Wallet" WHERE customer_id = $1`, [customerId]);
-            return walletResult.rows[0].balance;
-        });
-    }
-    createPurchaseRecord(customerId, total) {
+    static createPurchaseRecord(customerId, total) {
         return __awaiter(this, void 0, void 0, function* () {
             const purchaseResult = yield database_1.pool.query(`INSERT INTO "Purchase" (customerId, total) VALUES ($1, $2) RETURNING *`, [customerId, total]);
             return purchaseResult.rows[0];
         });
     }
-    createPurchaseProductRecord(purchaseId, productId, quantity) {
+    static createPurchaseProductRecord(purchaseId, productId, quantity) {
         return __awaiter(this, void 0, void 0, function* () {
             yield database_1.pool.query(`INSERT INTO "PurchaseProduct" (purchaseId, productId, quantity) VALUES ($1, $2, $3)`, [purchaseId, productId, quantity]);
         });
     }
-    updateProductStock(productId, newStock) {
+    static updateProductStock(productId, newStock) {
         return __awaiter(this, void 0, void 0, function* () {
             yield database_1.pool.query(`UPDATE "Product" SET stock = $1 WHERE id = $2`, [newStock, productId]);
         });
     }
-    updateWalletBalance(customerId, newBalance) {
+    static updateWalletBalance(customerId, newBalance) {
         return __awaiter(this, void 0, void 0, function* () {
             yield database_1.pool.query(`UPDATE "Wallet" SET balance = $1, updated_at = $2 WHERE customer_id = $3`, [newBalance, new Date(), customerId]);
         });
     }
-    checkQuantity(quantity) {
-        if (quantity <= 0) {
-            this.res.status(400).json({ message: 'La cantidad a comprar debe ser mayor a cero.' });
-            return false;
-        }
-        return true;
-    }
-    checkStock(stock, quantity) {
-        if (stock < quantity) {
-            this.res.status(400).json({ message: 'Stock insuficiente' });
-            return false;
-        }
-        return true;
-    }
-    checkBalance(total, balance) {
+    static checkBalance(total, balance) {
         if (total > balance) {
-            this.res.status(400).json({ message: `insuficient balance` });
             return false;
         }
         return true;
     }
-    productNotFound() {
-        return this.res.status(404).json({ message: 'Producto no encontrado' });
-    }
-    getPurchaseRecords(customerId) {
+    static getPurchaseRecords(customerId) {
         return __awaiter(this, void 0, void 0, function* () {
             const response = yield database_1.pool.query(`SELECT
     "Purchase".id AS purchase_id,
@@ -95,6 +65,38 @@ WHERE
     "Purchase".customerId = $1;`, [customerId]);
             return response;
         });
+    }
+    static getSellerCountry(id) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield database_1.pool.query(`SELECT
+	  c.country as country
+FROM
+	  "Customer" c
+JOIN
+	  "Product" p ON c.id  = p.seller_id 
+WHERE
+	  p.id = $1`, [id]);
+            return response.rows[0];
+        });
+    }
+    static processPurchase(purchaseId, productData, quantity, userId, walletBalance, total) {
+        return __awaiter(this, void 0, void 0, function* () {
+            yield Promise.all([
+                OrderUtils.createPurchaseProductRecord(purchaseId, productData.id, quantity),
+                OrderUtils.updateProductStock(productData.id, productData.stock - quantity),
+                OrderUtils.updateWalletBalance(userId, walletBalance.balance - total)
+            ]);
+        });
+    }
+    static calculateTotal(price, quantity, user, sellerCountry) {
+        return (price * quantity) + this.countryTaxes(user, sellerCountry);
+    }
+    static countryTaxes(user, sellerCountry) {
+        let tax = 0;
+        const userCountry = user.country;
+        if (userCountry != sellerCountry)
+            tax += 1000;
+        return tax;
     }
 }
 exports.OrderUtils = OrderUtils;

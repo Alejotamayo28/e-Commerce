@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyProductStock = exports.verifyProductCategory = exports.ProductCategoryEnum = void 0;
+exports.verifyPositiveNumber = exports.verifyProductStock = exports.verifyProductCategory = exports.ProductCategoryEnum = void 0;
 var ProductCategoryEnum;
 (function (ProductCategoryEnum) {
     ProductCategoryEnum["ELECTRONICS"] = "Electronics";
@@ -23,3 +23,10 @@ const verifyProductStock = (number) => {
         throw new Error(`Stock must be a positive number`);
 };
 exports.verifyProductStock = verifyProductStock;
+const verifyPositiveNumber = (number) => {
+    if (number > 0)
+        return true;
+    else
+        throw new Error(`Value must be a positive number`);
+};
+exports.verifyPositiveNumber = verifyPositiveNumber;

@@ -41,10 +41,10 @@ class WalletService {
                 return this.res.status(303).json({ message: `User not found` });
             }
             try {
-                const walletOldData = yield this.walletUtils.getWalletRecord(client.id);
+                const walletOldData = yield wallet_utils_1.WalletUtils.getWalletRecord(client.id);
                 const walletNewData = {
-                    balance: (_a = walletData.balance) !== null && _a !== void 0 ? _a : walletOldData.rows[0].balance,
-                    status: (_b = walletData.status) !== null && _b !== void 0 ? _b : walletOldData.rows[0].status
+                    balance: (_a = walletData.balance) !== null && _a !== void 0 ? _a : walletOldData.balance,
+                    status: (_b = walletData.status) !== null && _b !== void 0 ? _b : walletOldData.status
                 };
                 const Wallet = yield this.walletUtils.updateWalletRecord(client.id, walletNewData);
                 return this.res.status(202).json({ Message: `Wallet Updated`, Data: Wallet.rows });

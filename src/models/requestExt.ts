@@ -3,5 +3,6 @@ import { JwtPayload } from "jsonwebtoken";
 
 export interface RequestExt extends Request {
   user?: JwtPayload,
-  id?: any,
+  id?: number,
+  country?: string,
 }

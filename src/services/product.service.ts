@@ -24,8 +24,8 @@ export class ProductService {
     const client = this.req.user
     if (!client) return this.res.status(303).json({ Message: "Client not found" })
     try {
-      const product: QueryResult = await this.productUtils.getProducts()
-      if (!product.rows) return this.res.status(303).json({ Message: "No products found" })
+      const product: QueryResult = await ProductUtils.getProducts()
+      if (!product) return this.res.status(303).json({ Message: "No products found" })
       return this.res.status(202).json({ Message: `Data found`, Data: product.rows })
     } catch (e) {
       return errorMessage(e, this.res)

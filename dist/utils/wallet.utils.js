@@ -19,10 +19,10 @@ class WalletUtils {
             return walletResult.rows[0];
         });
     }
-    getWalletRecord(customerId) {
+    static getWalletRecord(customerId) {
         return __awaiter(this, void 0, void 0, function* () {
             const walletResult = yield database_1.pool.query(`SELECT * FROM "Wallet" WHERE customer_id = $1`, [customerId]);
-            return walletResult;
+            return walletResult.rows[0];
         });
     }
     updateWalletRecord(customerId, walletData) {

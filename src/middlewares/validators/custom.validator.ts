@@ -13,3 +13,7 @@ export const verifyProductStock = (number: number) => {
   if (number > 0) return true
   else throw new Error(`Stock must be a positive number`)
 }
+export const verifyPositiveNumber = (number:number) => {
+if(number>0) return true
+  else throw new Error(`Value must be a positive number`)
+}

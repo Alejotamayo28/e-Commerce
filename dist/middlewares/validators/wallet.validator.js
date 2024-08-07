@@ -5,7 +5,9 @@ const express_validator_1 = require("express-validator");
 const _1 = require(".");
 exports.validateWalletPost = [
     (0, express_validator_1.check)(`balance`).exists().isNumeric(),
-    (0, express_validator_1.check)(`currency`).exists().isString(),
+    (0, express_validator_1.check)(`currency`).exists().isString().custom((value) => {
+        return activeCurrencies(value);
+    }),
     (0, express_validator_1.check)(`status`).exists().isString(),
     (req, res, next) => {
         (0, _1.validateResult)(req, res, next);
@@ -18,3 +20,10 @@ exports.validateWalletPut = [
         (0, _1.validateResult)(req, res, next);
     }
 ];
+const currencies = ["USD", "EURO", "COL"];
+const activeCurrencies = (value) => {
+    if (currencies.includes(value))
+        return true;
+    else
+        throw new Error(`Currency not allowed`);
+};

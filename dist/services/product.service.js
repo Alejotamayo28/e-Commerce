@@ -38,8 +38,8 @@ class ProductService {
             if (!client)
                 return this.res.status(303).json({ Message: "Client not found" });
             try {
-                const product = yield this.productUtils.getProducts();
-                if (!product.rows)
+                const product = yield product_utils_1.ProductUtils.getProducts();
+                if (!product)
                     return this.res.status(303).json({ Message: "No products found" });
                 return this.res.status(202).json({ Message: `Data found`, Data: product.rows });
             }

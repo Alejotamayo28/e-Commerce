@@ -1,17 +1,17 @@
-import { QueryArrayResult, QueryResult } from "pg";
+import {  QueryResult } from "pg";
 import { ShoppingCart } from "../models/shoppingCart";
 import { pool } from "../database/database";
 
-export const postShoppingCart = async (shoppingCart: ShoppingCart, id: number): Promise<QueryResult> => {
+export const postShoppingCart = async (shoppingCart: ShoppingCart, id: number): Promise<ShoppingCart> => {
   const response: QueryResult = await pool.query(
     `INSERT INTO "ShoppingCart" (customerId, productId, quantity, added_at) 
          VALUES ($1, $2, $3, $4) RETURNING *`,
     [id, shoppingCart.productId, shoppingCart.quantity, new Date()]
   )
-  return response
+  return response.rows[0]
 }
 
-export const getShoppingCart = async (id: number): Promise<QueryResult> => {
+export const getShoppingCart = async (id: number): Promise<ShoppingCart> => {
   const response: QueryResult = await pool.query(
     `    SELECT
         p.name,
@@ -33,7 +33,7 @@ export const getShoppingCart = async (id: number): Promise<QueryResult> => {
         sc.customerid = $1`,
     [id]
   )
-  return response
+  return response.rows[0]
 }
 
 export const getProductById = async (id: number): Promise<QueryResult> => {

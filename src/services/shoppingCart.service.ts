@@ -7,8 +7,8 @@ import { getProductById, getShoppingCart, getTotalShoppingCart, postShoppingCart
 
 export class ShoppingCartService {
   constructor(private req: RequestExt, private res: Response) { }
-  private responseQuery(response: QueryResult, grand_total?: number): Response {
-    return this.res.status(200).json({ Message: 'Successful', Total: grand_total, Data: response.rows })
+  private responseQuery(response: ShoppingCart, grand_total?: number): Response {
+    return this.res.status(200).json({ Message: 'Successful', Total: grand_total, Data: response })
   }
   private verifyClient(): boolean {
     const client = this.req.user
@@ -23,7 +23,7 @@ export class ShoppingCartService {
     try {
       const product: QueryResult = await getProductById(this.req.user!.id)
       if (!product.rowCount) return this.res.status(404).json({ Message: `Product not found` })
-      const response: QueryResult = await postShoppingCart(shoppingCart, this.req.user!.id)
+      const response: ShoppingCart= await postShoppingCart(shoppingCart, this.req.user!.id)
       return this.responseQuery(response)
     } catch (e) {
       return errorMessage(e, this.res)
@@ -32,8 +32,8 @@ export class ShoppingCartService {
   public async getShoppingCart(): Promise<Response | undefined> {
     if (!this.verifyClient()) return
     try {
-      const response: QueryResult = await getShoppingCart(this.req.user!.id)
-      return this.responseQuery(response, response.rows[0].grand_total)
+      const response: ShoppingCart= await getShoppingCart(this.req.user!.id)
+      return this.responseQuery(response)
     } catch (e) {
       return errorMessage(e, this.res)
     }
@@ -48,4 +48,3 @@ export class ShoppingCartService {
     }
   }
 }
-

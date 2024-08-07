@@ -8,7 +8,7 @@ exports.validateProductPost = [
     (0, express_validator_1.check)(`name`).exists().isString(),
     (0, express_validator_1.check)(`price`).exists().isNumeric(),
     (0, express_validator_1.check)(`stock`).exists().isNumeric().custom((value) => {
-        (0, custom_validator_1.verifyProductStock)(value);
+        return (0, custom_validator_1.verifyProductStock)(value);
     }),
     (0, express_validator_1.check)(`description`).exists().isString(),
     (0, express_validator_1.check)(`color`).exists().isString(),

@@ -10,11 +10,11 @@ export class WalletUtils {
       [customerId, walletData.balance, walletData.currency, walletData.status])
     return walletResult.rows[0]
   }
-  public async getWalletRecord(customerId: number) {
-    const walletResult: QueryResult = await pool.query
-      (`SELECT * FROM "Wallet" WHERE customer_id = $1`,
+  static async getWalletRecord(customerId: number):Promise<Wallet> {
+    const walletResult: QueryResult = await pool.query(
+      `SELECT * FROM "Wallet" WHERE customer_id = $1`,
         [customerId])
-    return walletResult
+    return walletResult.rows[0] as Wallet
   }
   public async updateWalletRecord(customerId: number, walletData: Partial<Wallet>) {
     const walletResult: QueryResult = await pool.query(

@@ -3,12 +3,12 @@ import { pool } from "../database/database"
 import { Product } from "../models/product"
 
 export class ProductUtils {
-  public async getProducts(): Promise<QueryResult<Product>> {
+  static async getProducts(): Promise<QueryResult<Product>> {
     const response: QueryResult = await pool.query(`SELECT * FROM "Product"`)
     return response
   }
   public async createProduct(id: number, productData: Product): Promise<Omit<Product, 'id'>> {
-    const description: QueryResult = await pool.query(
+    const description = await pool.query<Product>(
       `INSERT INTO "ProductDetails" (description, color, year, category) VALUES ($1, $2, $3, $4) RETURNING *`,
       [productData.description, productData.color, productData.year, productData.category])
     const product: QueryResult = await pool.query(
@@ -25,4 +25,10 @@ export class ProductUtils {
     }
     return producto
   }
+}
+export const getProductById = async (id: number): Promise<Product> => {
+  const response: QueryResult = await pool.query(
+    `SELECT * FROM "Product" WHERE id = $1`,
+    [id])
+  return response.rows[0]
 }

@@ -18,6 +18,7 @@ const jwt_1 = require("../utils/jwt");
 const auth_utils_1 = require("../utils/auth.utils");
 const errors_1 = require("../errors");
 const email_service_1 = require("./email.service");
+const http_response_1 = require("../utils/http.response");
 class AuthService {
     constructor(res) {
         this.res = res;
@@ -29,7 +30,7 @@ class AuthService {
                 const hashedPassword = yield bcryptjs_1.default.hash(customerData.password, 10);
                 const response = yield this.authUtils.createCustomer(hashedPassword, customerData);
                 new email_service_1.EmailService().sendEmail(customerData);
-                return this.res.status(202).json({ Message: `Completed`, Data: response.rows[0] });
+                return http_response_1.HttpResponses.sendSuccessResponse(this.res, 'Register Completed Succesfully', response);
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);
@@ -40,12 +41,14 @@ class AuthService {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const user = yield this.authUtils.getCustomer(customerData.email);
-                if (!user.rowCount)
+                if (!user)
                     this.res.status(303).json(`Email not found`);
-                if (!(yield bcryptjs_1.default.compare(customerData.password, user.rows[0].password))) {
-                    return this.res.status(303).json(`Contrasena Invalida`);
+                if (!(yield bcryptjs_1.default.compare(customerData.password, user.password))) {
+                    return http_response_1.HttpResponses.sendErrorResponse(this.res, 303, `Invalid Password`);
                 }
-                return this.res.status(202).json({ Token: (0, jwt_1.generateToken)(user.rows[0].id) });
+                return this.res.status(202).json({
+                    Token: (0, jwt_1.generateToken)(user.id, user.country)
+                });
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);
