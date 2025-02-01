@@ -3,7 +3,7 @@ import { RequestExt } from '../models/requestExt'
 import { QueryResult } from 'pg'
 import { errorMessage } from '../errors'
 import { verifyClient } from '../utils/jwt'
-import { getProductsByCategory, getProductsByCategoryAndPrice, getProductsByPrice } from '../utils/search.utils'
+import { getProductsByCategory, getProductsByPrice, getProductsByCategoryAndPrice } from '../utils/service/search.utils'
 
 export class SearchService {
   constructor(private req: RequestExt, private res: Response) { }

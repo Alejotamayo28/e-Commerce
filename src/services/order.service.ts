@@ -1,41 +1,44 @@
 import { Response } from "express"
 import { RequestExt } from "../models/requestExt"
 import { PurchaseProduct } from "../models/purchaseProduct"
-import { Purchase } from "../models/purchase"
-import { OrderUtils } from "../utils/order.Utils"
 import { errorMessage } from "../errors"
-import { Product } from "../models/product"
-import { getProductById } from "../utils/product.utils"
 import { HttpResponses } from "../utils/http.response"
-import { WalletUtils } from "../utils/wallet.utils"
+import {  calculateTotalPrice, createPurchaseRecord, getProductById, getSellerCountryAndWalletBalance, hasSufficientBalance, processPurchase } from "../utils/service/order.Utils"
 
 export class OrderService {
   constructor(private req: RequestExt, private res: Response) {
   }
-  public async createPurchase(purchaseProduct: PurchaseProduct): Promise<Response> {
+  public async createPurchase(product: PurchaseProduct): Promise<Response> {
     const user = this.req.user!
     try {
-      const productData: Product = await getProductById(purchaseProduct.productId)
-      if (!productData) return HttpResponses.sendErrorResponse(this.res, 204, `Product Not Found`)
-      const [sellerCountry, walletBalance] = await Promise.all([
-        OrderUtils.getSellerCountry(purchaseProduct.productId),
-        WalletUtils.getWalletRecord(user.id)
-      ])
-      const total = OrderUtils.calculateTotal(
-        productData.price, purchaseProduct.quantity, user, sellerCountry.country)
-      if (!OrderUtils.checkBalance(total, walletBalance.balance)) {
-        return HttpResponses.sendErrorResponse(this.res, 402, `Insufficient Balance`)
+      const productData = await getProductById(product.productId)
+      if (!productData) return this.sendProductNotFoundError()
+      const { sellerCountry, walletBalance } = await getSellerCountryAndWalletBalance(product.productId, user.id)
+      const total = calculateTotalPrice(productData.price, product.quantity, user, sellerCountry)
+      if (!hasSufficientBalance(total, walletBalance.balance)) {
+        return this.sendInsufficientBalanceError();
       }
-      const purchaseData: Purchase = await OrderUtils.createPurchaseRecord(user.id, total)
-      console.log(`wallet: `,walletBalance)
-      await OrderUtils.processPurchase(
-        purchaseData.id, productData, purchaseProduct.quantity, user.id, walletBalance, total);
-      return HttpResponses.sendSuccessResponse(this.res, `Purchase Completed Succesfully`)
+      const purchaseData = await createPurchaseRecord(user.id, total);
+      await processPurchase(purchaseData.id, productData, product.quantity, user.id, walletBalance, total);
+      return this.sendPurchaseSuccessResponse()
     } catch (e) {
-      return errorMessage(e, this.res)
+      return this.handleError(e)
     }
   }
+  private sendProductNotFoundError(): Response {
+    return HttpResponses.sendErrorResponse(this.res, 204, `Product Not Found`);
+  }
+
+  private sendInsufficientBalanceError(): Response {
+    return HttpResponses.sendErrorResponse(this.res, 402, `Insufficient Balance`);
+  }
+
+  private sendPurchaseSuccessResponse(): Response {
+    return HttpResponses.sendSuccessResponse(this.res, `Purchase Completed Successfully`);
+  }
+
+  private handleError(e: any): Response {
+    return errorMessage(e, this.res);
+  }
 }
-
-
 

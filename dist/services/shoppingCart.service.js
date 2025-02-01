@@ -11,7 +11,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.ShoppingCartService = void 0;
 const errors_1 = require("../errors");
-const shoppingCart_utils_1 = require("../utils/shoppingCart.utils");
+const shoppingCart_utils_1 = require("../utils/service/shoppingCart.utils");
+const http_response_1 = require("../utils/http.response");
 class ShoppingCartService {
     constructor(req, res) {
         this.req = req;
@@ -30,14 +31,12 @@ class ShoppingCartService {
     }
     addProduct(shoppingCart) {
         return __awaiter(this, void 0, void 0, function* () {
-            if (!this.verifyClient())
-                return;
             try {
                 const product = yield (0, shoppingCart_utils_1.getProductById)(this.req.user.id);
                 if (!product.rowCount)
-                    return this.res.status(404).json({ Message: `Product not found` });
-                const response = yield (0, shoppingCart_utils_1.postShoppingCart)(shoppingCart, this.req.user.id);
-                return this.responseQuery(response);
+                    return this.sendProductNotFound();
+                yield (0, shoppingCart_utils_1.postShoppingCart)(shoppingCart, this.req.user.id);
+                return this.sendProductAdded();
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);
@@ -69,6 +68,12 @@ class ShoppingCartService {
                 return (0, errors_1.errorMessage)(e, this.res);
             }
         });
+    }
+    sendProductNotFound() {
+        return http_response_1.HttpResponses.sendErrorResponse(this.res, 204, `Product Not Found`);
+    }
+    sendProductAdded() {
+        return http_response_1.HttpResponses.sendSuccessResponse(this.res, `Product Added To Your ShoppingCart`);
     }
 }
 exports.ShoppingCartService = ShoppingCartService;

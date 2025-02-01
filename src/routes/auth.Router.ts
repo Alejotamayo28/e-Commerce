@@ -4,6 +4,8 @@ import { validateAuthLogin } from "../middlewares/validators/auth.validator";
 
 const authRouter = Router()
 
+
+//local
 authRouter.post(`/login`, validateAuthLogin, authServiceLoginController)
 authRouter.post(`/register`, authServiceRegisterController)
 

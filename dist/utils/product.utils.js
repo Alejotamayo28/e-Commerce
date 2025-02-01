@@ -18,20 +18,21 @@ class ProductUtils {
             return response;
         });
     }
-    createProduct(id, productData) {
+    createProduct(id, data) {
         return __awaiter(this, void 0, void 0, function* () {
-            const description = yield database_1.pool.query(`INSERT INTO "ProductDetails" (description, color, year, category) VALUES ($1, $2, $3, $4) RETURNING *`, [productData.description, productData.color, productData.year, productData.category]);
-            const product = yield database_1.pool.query(`INSERT INTO "Product" (name,  price, stock, description_id, seller_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [productData.name, productData.price, productData.stock, description.rows[0].id, id]);
-            const producto = {
-                name: product.rows[0].name,
-                price: product.rows[0].price,
-                stock: product.rows[0].stock,
-                description: description.rows[0].description,
-                color: description.rows[0].color,
-                year: description.rows[0].year,
-                category: description.rows[0].category
+            const { rows: [productDetails] } = yield database_1.pool.query(`INSERT INTO "ProductDetails" (description, color, year, category) VALUES ($1, $2, $3, $4) RETURNING *`, [data.details.description, data.details.color, data.details.year, data.details.category]);
+            const { rows: [product] } = yield database_1.pool.query(`INSERT INTO "Product" (name,  price, stock, description_id, seller_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`, [data.name, data.price, data.stock, productDetails.id, id]);
+            return {
+                name: product.name,
+                price: product.price,
+                stock: product.stock,
+                details: {
+                    description: productDetails.description,
+                    color: productDetails.color,
+                    year: productDetails.year,
+                    category: productDetails.category
+                }
             };
-            return producto;
         });
     }
 }

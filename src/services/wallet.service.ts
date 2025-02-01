@@ -1,42 +1,37 @@
 import { Response } from "express";
 import { RequestExt } from "../models/requestExt";
 import { Wallet } from "../models/wallet";
-import { QueryResult } from "pg";
-import { WalletUtils } from "../utils/wallet.utils";
 import { errorMessage } from "../errors";
+import { HttpResponses } from "../utils/http.response";
+import { WalletUtils } from "../utils/service/wallet.utils";
+import { UpdateWalletFields } from "../queries/wallet.queries";
 
 export class WalletService {
-  private walletUtils: WalletUtils
-  constructor(private req: RequestExt, private res: Response) {
-    this.walletUtils = new WalletUtils()
-  }
+  constructor(private req: RequestExt, private res: Response) { }
   public async createWallet(walletData: Wallet): Promise<Response> {
-    const client = this.req.user
-    if (!client) {
-      return this.res.status(303).json({ message: `User not found` })
-    } try {
-      const response = await this.walletUtils.createWalletUtils(client.id, walletData)
-      return this.res.status(202).json({ Message: `Wallet crated`, Data: response })
+    const user = this.req.user!
+    try {
+      await WalletUtils.createWalletUtils(user.id, walletData)
+      return this.sendWalletCreatedRespons()
     } catch (e) {
       return errorMessage(e, this.res)
     }
   }
   public async updateWallet(walletData: Wallet): Promise<Response> {
-    const client = this.req.user
-    if (!client) {
-      return this.res.status(303).json({ message: `User not found` })
-    }
+    const user = this.req.user!
     try {
-      const walletOldData: Wallet = await WalletUtils.getWalletRecord(client.id)
-      const walletNewData: Partial<Wallet> = {
-        balance: walletData.balance ?? walletOldData.balance,
-        status: walletData.status ?? walletOldData.status
-      }
-      const Wallet = await this.walletUtils.updateWalletRecord(client.id, walletNewData)
-      return this.res.status(202).json({ Message: `Wallet Updated`, Data: Wallet.rows })
+      const newWallet: Partial<Wallet> = await UpdateWalletFields(user.id, walletData)
+      await WalletUtils.updateWalletRecord(user.id, newWallet)
+      return this.sendWalletUpdatedResponse()
     } catch (e) {
       return errorMessage(e, this.res)
     }
+  }
+  private sendWalletCreatedRespons(): Response {
+    return HttpResponses.sendSuccessResponse(this.res, `Wallet Created Succesfully`)
+  }
+  private sendWalletUpdatedResponse(): Response {
+    return HttpResponses.sendSuccessResponse(this.res, `Wallet Created Succesfully`)
   }
 }
 

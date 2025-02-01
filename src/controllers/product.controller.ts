@@ -3,21 +3,20 @@ import { RequestExt } from "../models/requestExt";
 import { ProductService } from "../services/product.service";
 import { errorMessage } from "../errors";
 
-
-export const productServicePostController = (req: RequestExt, res: Response) => {
+export const productServicePostController = async (req: RequestExt, res: Response) => {
+  const productService = new ProductService(req, res)
   try {
-    res.set('Cache-Control', 'public, max-age=3600'); 
-    new ProductService(req, res).createProduct(req.body)
+    await productService.createProduct(req.body)
   } catch (e) {
     return errorMessage(e, res)
   }
 }
-export const productServiceGetController = (req: RequestExt, res: Response) => {
+
+export const productServiceGetController = async (req: RequestExt, res: Response) => {
+  const productService = new ProductService(req, res)
   try {
-    new ProductService(req, res).getProducts()
+    await productService.getProducts()
   } catch (e) {
     return errorMessage(e, res)
   }
-
-
 }

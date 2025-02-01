@@ -9,18 +9,19 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyUserExists = void 0;
-const errors_1 = require("../../errors");
-const verifyUserExists = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const userId = req.user.id;
-        if (!userId) {
-            return res.status(404).json({ Message: `User not found` });
-        }
-        next();
+exports.AuthUtils = void 0;
+class AuthUtils {
+    static insertCustomer(hashedPassword, customerData, client) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield client.query(`INSERT INTO "Customer" (email, password, name, country) VALUES ($1, $2, $3, $4) RETURNING *`, [customerData.email, hashedPassword, customerData.name, customerData.country]);
+            return response.rows[0];
+        });
     }
-    catch (e) {
-        return (0, errors_1.errorMessage)(e, res);
+    static getCustomer(email, client) {
+        return __awaiter(this, void 0, void 0, function* () {
+            const response = yield client.query(`SELECT * FROM "Customer" WHERE email = $1`, [email]);
+            return response.rows[0];
+        });
     }
-});
-exports.verifyUserExists = verifyUserExists;
+}
+exports.AuthUtils = AuthUtils;

@@ -1,32 +1,35 @@
-import { QueryResult } from "pg";
 import { Response } from "express"
 import { RequestExt } from "../models/requestExt";
 import { Product } from "../models/product";
-import { ProductUtils } from "../utils/product.utils";
 import { errorMessage } from "../errors";
+import { ProductUtils } from "../utils/service/product.utils";
+import { HttpResponses } from "../utils/http.response";
+import { onSession, onTransaction } from "../utils/dataAccessLayer";
 
 export class ProductService {
-  private productUtils: ProductUtils
-  constructor(private req: RequestExt, private res: Response) {
-    this.productUtils = new ProductUtils()
+  constructor(
+    private readonly req: RequestExt,
+    private readonly res: Response,
+  ) {
   }
-  public async createProduct(productData: Product): Promise<Response> {
-    const client = this.req.user
+  async createProduct(data: Product): Promise<Response> {
     try {
-      if (!client) return this.res.status(303).json({ Message: "Client not found" })
-      const response = await this.productUtils.createProduct(client.id, productData)
-      return this.res.status(202).json({ Message: `Product Created`, Data: response })
+      const product = await onTransaction(async (client) => {
+        const productDetails = await ProductUtils.insertProductDetails(client, data.details)
+        const product = await ProductUtils.insertProduct(client, data, productDetails.id!, this.req.user!.id);
+        return ProductUtils.constructProductResponse(product, productDetails);
+      })
+      return HttpResponses.sendSuccessResponse(this.res, `Product Succesfully Created`, product)
     } catch (e) {
       return errorMessage(e, this.res)
     }
   }
-  public async getProducts(): Promise<Response> {
-    const client = this.req.user
-    if (!client) return this.res.status(303).json({ Message: "Client not found" })
+  async getProducts() {
     try {
-      const product: QueryResult = await ProductUtils.getProducts()
-      if (!product) return this.res.status(303).json({ Message: "No products found" })
-      return this.res.status(202).json({ Message: `Data found`, Data: product.rows })
+      const products = await onSession(async (client) => {
+        return await ProductUtils.getProducts(client)
+      })
+      return this.res.status(202).json({ Message: `Data found`, Data: products.rows })
     } catch (e) {
       return errorMessage(e, this.res)
     }

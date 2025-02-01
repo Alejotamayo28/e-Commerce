@@ -1,6 +1,7 @@
-import {  QueryResult } from "pg";
-import { ShoppingCart } from "../models/shoppingCart";
-import { pool } from "../database/database";
+import { QueryResult } from "pg";
+import { pool } from "../../database/database";
+import { ShoppingCart } from "../../models/shoppingCart";
+
 
 export const postShoppingCart = async (shoppingCart: ShoppingCart, id: number): Promise<ShoppingCart> => {
   const response: QueryResult = await pool.query(

@@ -2,35 +2,36 @@ import bcrypt from "bcryptjs"
 import { Response } from "express"
 import { generateToken } from "../utils/jwt"
 import { Customer } from "../models/customer"
-import { AuthUtils } from "../utils/auth.utils"
 import { errorMessage } from "../errors"
 import { EmailService } from "./email.service"
 import { HttpResponses } from "../utils/http.response"
+import { AuthUtils } from "../utils/service/auth.utils"
+import { onSession, onTransaction } from "../utils/dataAccessLayer"
 
 export class AuthService {
-  private authUtils: AuthUtils
-  constructor(private res: Response) {
-    this.authUtils = new AuthUtils()
-  }
+  constructor(private res: Response) {}
   public async register(customerData: Customer): Promise<Response> {
     try {
       const hashedPassword = await bcrypt.hash(customerData.password, 10)
-      const response: Customer = await this.authUtils.createCustomer(hashedPassword, customerData)
+      const response: Customer = await onTransaction(async (transactionClient) => {
+        return await AuthUtils.insertCustomer(hashedPassword, customerData, transactionClient)
+      })
       new EmailService().sendEmail(customerData)
-      return HttpResponses.sendSuccessResponse(this.res, 'Register Completed Succesfully', response)
+      return HttpResponses.sendSuccessResponse(this.res, 'REGISTER COMPLETED SUCCESFULLY', response)
     } catch (e) {
       return errorMessage(e, this.res)
     }
   }
   public async login(customerData: Customer): Promise<Response> {
     try {
-      const user: Customer = await this.authUtils.getCustomer(customerData.email)
-      if (!user) this.res.status(303).json(`Email not found`)
-      if (!(await bcrypt.compare(customerData.password, user.password))) {
-        return HttpResponses.sendErrorResponse(this.res,303,`Invalid Password`)
-      } return this.res.status(202).json({
-        Token: generateToken(user.id, user.country)
+      const user: Customer = await onSession(async (transactionClient) => {
+        return await AuthUtils.getCustomer(customerData.email, transactionClient)
       })
+      if (!user) HttpResponses.sendErrorResponse(this.res, 303, 'EMAIL NOT FOUND')
+      if (!(await bcrypt.compare(customerData.password, user.password))) {
+        return HttpResponses.sendErrorResponse(this.res, 303, `INVALID PASSWORD`)
+      }
+      return HttpResponses.sendSuccessResponse(this.res, 'LOGIN SUCCESFULLY', generateToken(user.id, user.country))
     } catch (e) {
       return errorMessage(e, this.res)
     }
