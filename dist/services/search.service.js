@@ -12,7 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.SearchService = void 0;
 const errors_1 = require("../errors");
 const jwt_1 = require("../utils/jwt");
-const search_utils_1 = require("../utils/search.utils");
+const search_utils_1 = require("../utils/service/search.utils");
 class SearchService {
     constructor(req, res) {
         this.req = req;

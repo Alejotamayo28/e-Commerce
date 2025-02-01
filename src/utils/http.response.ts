@@ -8,7 +8,6 @@ export class HttpResponses {
       data
     });
   }
-
   static sendErrorResponse(res: Response, status: number, message: string): Response {
     return res.status(status).json({
       success: false,

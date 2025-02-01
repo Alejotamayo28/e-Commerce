@@ -7,3 +7,5 @@ export interface Wallet {
   updated_at: Date,
   status: string
 }
+
+export type partialWallet = Partial<Wallet>

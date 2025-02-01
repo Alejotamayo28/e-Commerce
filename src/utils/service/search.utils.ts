@@ -1,9 +1,10 @@
-import { QueryResult } from "pg";
-import { pool } from "../database/database";
+import { PoolClient, QueryResult } from "pg";
+import { onSession } from "../dataAccessLayer";
 
 export const getProductsByCategory = async (category: String): Promise<QueryResult> => {
-  return await pool.query(
-    `SELECT 
+  const response: QueryResult = await onSession(async (client: PoolClient) => {
+    return await client.query(
+      `SELECT 
       "Product".id as product_id,
       "Product".name,
       "Product".price,
@@ -18,13 +19,15 @@ export const getProductsByCategory = async (category: String): Promise<QueryResu
       "Product" ON "ProductDetails".id = "Product".description_id
     WHERE 
       "ProductDetails".category = $1`,
-    [category]
-  );
+      [category]
+    );
+  })
+  return response
 }
 
 export const getProductsByPrice = async (price: number): Promise<QueryResult> => {
-  return await pool.query(
-    `SELECT 
+  const response: QueryResult = await onSession(async (client: PoolClient) => {
+    return await client.query(`SELECT 
     "ProductDetails".id,
     "ProductDetails".description,
     "ProductDetails".color,
@@ -39,14 +42,15 @@ JOIN
     "Product" ON "ProductDetails".id = "Product".description_id
 WHERE 
 	"Product".price <= $1`,
-    [price]
-  );
+      [price]
+    );
+  })
+  return response
 }
 
 export const getProductsByCategoryAndPrice = async (category: string, price: number): Promise<QueryResult> => {
-  return await pool.query(
-    `
-    SELECT 
+  const response: QueryResult = await onSession(async (client: PoolClient) => {
+    return await client.query(`SELECT 
     "ProductDetails".id,
     "ProductDetails".description,
     "ProductDetails".color,
@@ -61,5 +65,7 @@ JOIN
     "Product" ON "ProductDetails".id = "Product".description_id
 WHERE 
 	"Product".price <= $1 AND "ProductDetails".category = $2`,
-    [price, category])
+      [price, category])
+  })
+  return response
 }

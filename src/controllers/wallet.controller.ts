@@ -10,6 +10,7 @@ export const wallerServicePostController = async (req: RequestExt, res: Response
     return errorMessage(e, res)
   }
 }
+
 export const walletServicePutController = async (req: RequestExt, res: Response) => {
   try {
     new WalletService(req, res).updateWallet(req.body)

@@ -15,22 +15,24 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.AuthService = void 0;
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jwt_1 = require("../utils/jwt");
-const auth_utils_1 = require("../utils/auth.utils");
 const errors_1 = require("../errors");
 const email_service_1 = require("./email.service");
 const http_response_1 = require("../utils/http.response");
+const auth_utils_1 = require("../utils/service/auth.utils");
+const dataAccessLayer_1 = require("../utils/dataAccessLayer");
 class AuthService {
     constructor(res) {
         this.res = res;
-        this.authUtils = new auth_utils_1.AuthUtils();
     }
     register(customerData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
                 const hashedPassword = yield bcryptjs_1.default.hash(customerData.password, 10);
-                const response = yield this.authUtils.createCustomer(hashedPassword, customerData);
+                const response = yield (0, dataAccessLayer_1.onTransaction)((transactionClient) => __awaiter(this, void 0, void 0, function* () {
+                    return yield auth_utils_1.AuthUtils.insertCustomer(hashedPassword, customerData, transactionClient);
+                }));
                 new email_service_1.EmailService().sendEmail(customerData);
-                return http_response_1.HttpResponses.sendSuccessResponse(this.res, 'Register Completed Succesfully', response);
+                return http_response_1.HttpResponses.sendSuccessResponse(this.res, 'REGISTER COMPLETED SUCCESFULLY', response);
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);
@@ -40,15 +42,15 @@ class AuthService {
     login(customerData) {
         return __awaiter(this, void 0, void 0, function* () {
             try {
-                const user = yield this.authUtils.getCustomer(customerData.email);
+                const user = yield (0, dataAccessLayer_1.onSession)((transactionClient) => __awaiter(this, void 0, void 0, function* () {
+                    return yield auth_utils_1.AuthUtils.getCustomer(customerData.email, transactionClient);
+                }));
                 if (!user)
-                    this.res.status(303).json(`Email not found`);
+                    http_response_1.HttpResponses.sendErrorResponse(this.res, 303, 'EMAIL NOT FOUND');
                 if (!(yield bcryptjs_1.default.compare(customerData.password, user.password))) {
-                    return http_response_1.HttpResponses.sendErrorResponse(this.res, 303, `Invalid Password`);
+                    return http_response_1.HttpResponses.sendErrorResponse(this.res, 303, `INVALID PASSWORD`);
                 }
-                return this.res.status(202).json({
-                    Token: (0, jwt_1.generateToken)(user.id, user.country)
-                });
+                return http_response_1.HttpResponses.sendSuccessResponse(this.res, 'LOGIN SUCCESFULLY', (0, jwt_1.generateToken)(user.id, user.country));
             }
             catch (e) {
                 return (0, errors_1.errorMessage)(e, this.res);

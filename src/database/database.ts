@@ -1,7 +1,6 @@
 import { Pool } from 'pg'
 import { Envconfig } from './postgresql'
 
-
 const USER = encodeURIComponent(Envconfig.dbUser!)
 const PASSWORD = encodeURIComponent(Envconfig.dbPassword!)
 

@@ -1,9 +1,10 @@
 import { Response } from "express"
-import { RequestExt } from "../models/requestExt"
 import { errorMessage } from "../errors"
 import { ShoppingCart } from "../models/shoppingCart"
 import { QueryResult } from "pg"
-import { getProductById, getShoppingCart, getTotalShoppingCart, postShoppingCart } from "../utils/shoppingCart.utils"
+import { postShoppingCart, getShoppingCart, getTotalShoppingCart, getProductById } from "../utils/service/shoppingCart.utils"
+import { HttpResponses } from "../utils/http.response"
+import { RequestExt } from "../models/requestExt"
 
 export class ShoppingCartService {
   constructor(private req: RequestExt, private res: Response) { }
@@ -19,12 +20,11 @@ export class ShoppingCartService {
     return true
   }
   public async addProduct(shoppingCart: ShoppingCart): Promise<Response | undefined> {
-    if (!this.verifyClient()) return
     try {
       const product: QueryResult = await getProductById(this.req.user!.id)
-      if (!product.rowCount) return this.res.status(404).json({ Message: `Product not found` })
-      const response: ShoppingCart= await postShoppingCart(shoppingCart, this.req.user!.id)
-      return this.responseQuery(response)
+      if (!product.rowCount) return this.sendProductNotFound()
+      await postShoppingCart(shoppingCart, this.req.user!.id)
+      return this.sendProductAdded()
     } catch (e) {
       return errorMessage(e, this.res)
     }
@@ -32,7 +32,7 @@ export class ShoppingCartService {
   public async getShoppingCart(): Promise<Response | undefined> {
     if (!this.verifyClient()) return
     try {
-      const response: ShoppingCart= await getShoppingCart(this.req.user!.id)
+      const response: ShoppingCart = await getShoppingCart(this.req.user!.id)
       return this.responseQuery(response)
     } catch (e) {
       return errorMessage(e, this.res)
@@ -42,9 +42,17 @@ export class ShoppingCartService {
     if (!this.verifyClient()) return
     try {
       const response: QueryResult = await getTotalShoppingCart(this.req.user!.id)
-      return this.res.status(202).json({Message: `Succesfull`, Total: response.rows[0].grand_total})
+      return this.res.status(202).json({ Message: `Succesfull`, Total: response.rows[0].grand_total })
     } catch (e) {
       return errorMessage(e, this.res)
     }
   }
+  private sendProductNotFound(): Response {
+    return HttpResponses.sendErrorResponse(this.res, 204, `Product Not Found`)
+  }
+  private sendProductAdded(): Response {
+    return HttpResponses.sendSuccessResponse(this.res, `Product Added To Your ShoppingCart`)
+  }
 }
+
+
