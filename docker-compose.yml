@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:latest
+    container_name: postgres-db
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"  # Expone el puerto 5432 para que puedas acceder a la DB desde fuera
+    volumes:
+      - postgres_data:/var/lib/postgresql/data  # Volumen persistente para la base de datos
+
+  app:
+    build: .
+    image: e-commerce  # Tu imagen de la aplicación
+    container_name: ecommerce-app
+    environment:
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: db  # Aquí usamos el nombre del servicio "db" como el host
+      DB_NAME: ${DB_NAME}
+      DB_PORT: ${DB_PORT}
+    ports:
+      - "3000:3000"  # Exponer el puerto de tu aplicación
+    depends_on:
+      - db  # La app depende de que la base de datos esté lista antes de iniciarse
+
+volumes:
+  postgres_data:  # Volumen persistente para la base de datos
+

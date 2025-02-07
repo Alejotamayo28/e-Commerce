@@ -5,7 +5,7 @@ import { errorMessage } from "../errors";
 
 export const orderServicePurchaseController = (req: RequestExt, res: Response) => {
   try {
-    new OrderService(req, res).createPurchase(req.body)
+    return new OrderService(req, res).createPurchase(req.body)
   } catch (e) {
     return errorMessage(e, res)
   }
