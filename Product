@@ -1,0 +1,15 @@
+select * from customer
+\dt
+select * from "Customer"
+select * from Customer
+\q
+\dt
+SHOW ALL
+\dt
+\l
+\c postgres
+\c postgres
+\c postgres
+\d Customer
+\d Product
+\s Product

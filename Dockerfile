@@ -1,29 +1,17 @@
-# Usa una imagen base de Node.js versión 22.13.1
-FROM node:22.13.1
-
-# Establece el directorio de trabajo dentro del contenedor
+# Etapa de construcción
+FROM node:22-alpine AS builder  
 WORKDIR /app
-
-# Copia los archivos package.json y package-lock.json
 COPY package*.json ./
-
-# Instala las dependencias de producción y desarrollo (necesitamos TypeScript para compilar)
-RUN npm install
-
-# Copia el resto del código fuente (incluyendo los archivos TypeScript)
+RUN npm ci
 COPY . .
-
-# Compila el código TypeScript a JavaScript
 RUN npm run build
 
-# Expone el puerto 3000
+# Etapa final
+FROM node:22-alpine  
+WORKDIR /app
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/node_modules ./node_modules
+COPY package*.json ./
+COPY .env ./
 EXPOSE 3000
-
-# Copia el archivo .env al contenedor (asegúrate de que esté en el mismo directorio que el Dockerfile)
-COPY .env .
-
-# Comando para ejecutar la aplicación
-#CMD ["npm", "run", "start"]
-
-# In your Dockerfile or entrypoint script
 CMD ["npm", "start"]
